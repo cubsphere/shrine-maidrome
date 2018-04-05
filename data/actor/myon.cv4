@@ -1,0 +1,144 @@
+function Attack_Horizontal()
+{
+	this.direction = this.actor[this.owner].direction;
+	this.vx = this.direction*20;
+	this.vy = 3;
+	this.u.Attack_Common();
+}
+
+function Attack_Down()
+{
+	this.direction = this.actor[this.owner].direction;
+	this.vx = this.direction*3;
+	this.vy = (20.0);
+	this.u.Attack_Common();
+}
+
+function Attack_Up()
+{
+	this.direction = this.actor[this.owner].direction;
+	this.vx = this.direction*3;
+	this.vy = (-20.0);
+	this.u.Attack_Common();
+}
+
+function Attack_Common()
+{
+	this.flag1 = 9;
+	this.SetUpdateFunction(this.u.Update_Attack);
+	this.hitEvent = function()
+	{
+		this.flag1 = 300;
+		this.SetUpdateFunction(this.u.Update_Bound);
+		this.hitEvent = null;
+	}
+}
+
+function Clone_Conversion()
+{
+	
+}
+
+function Update_Attack()
+{
+	if(this.flag1 > 0)
+	{
+		this.flag1--;
+	} else {
+		if(this.owner in this.actor)
+		{
+			this.actor[this.owner].u.myonCTL = 0;
+		}
+		this.vx = 0;
+		this.vy = 0;
+		this.SetUpdateFunction(this.u.Update_Normal);
+	}
+	return true;
+}
+
+function Update_Bound()
+{
+	if(this.flag1)
+	{
+		if(this.hitTarget && this.hitTarget.len() == 1)
+		{
+			foreach (enemy in hitTarget)
+			{
+				local maxspeed = 6.0;
+				local slowdist = 120;
+				local maxforce = 0.5;
+			
+				//CHANGETHESE
+				local yD = enemy.y-80.0 - this.y;
+				local xD = enemy.x-(40.0*this.direction) - this.x;
+				
+				local factor = this.sqrt(xD * xD + yD * yD);
+				if(factor < slowdist)
+				{			
+					factor = slowdist;
+				}
+				factor = maxspeed / factor;
+				
+				xD = xD*factor - this.vx;
+				yD = yD*factor - this.vy;
+				
+				factor = this.sqrt(xD * xD + yD * yD);
+				
+				this.vx += xD*maxforce/factor;
+				this.vy += yD*maxforce/factor;
+				
+				this.flag1 = this.flag1 - 1;
+				return true;
+			}
+		}
+	}
+	this.actor[this.owner].u.myonCTL = 0;
+	this.SetUpdateFunction(this.u.Update_Normal);
+	return true;
+}
+
+function Update_Normal()		//follows a point slightly above and behind youmu
+{
+	if(this.owner in this.actor)
+	{
+		//youmu commands myon using this flag
+		switch(this.actor[this.owner].u.myonCTL)
+		{
+		case 0:	//nothing
+			break;
+		case 1:	//forwards strike
+			this.u.Attack_Horizontal.call(this);
+			break;
+		case 2:	//clone
+			break;
+		default:
+		}
+	
+		local maxspeed = 6.0;
+		local slowdist = 120;
+		local maxforce = 1;
+	
+		local yD = this.actor[this.owner].y-80.0 - this.y;
+		local xD = this.actor[this.owner].x-(60.0*this.actor[this.owner].direction) - this.x;
+		//xD and xY store offset
+		
+		local factor = this.sqrt(xD * xD + yD * yD);
+		if(factor < slowdist)
+		{			
+			factor = slowdist;
+		}
+		factor = maxspeed / factor;
+		
+		xD = xD*factor - this.vx;
+		yD = yD*factor - this.vy;
+		//xD and xY store desired steering
+		
+		factor = this.sqrt(xD * xD + yD * yD);
+		
+		this.vx += xD*maxforce/factor;
+		this.vy += yD*maxforce/factor;
+		return true;
+	} else {
+		return false;
+	}
+}
