@@ -117,19 +117,21 @@ function Update_Normal()		//follows a point slightly above and behind youmu
 {
 	if(this.owner in this.actor)
 	{
-		//stuff that i'm not using anymore
-		switch(this.actor[this.owner].u.myonCTL)
-		{
-		case 0:	//nothing
-			break;
-		case 1:	//forwards strike
-			this.u.Attack_Horizontal.call(this);
-			break;
-		case 2:	//clone
-			break;
-		default:
-		}
-	
+		/* stuff that i'm not using anymore
+		 *
+		 *switch(this.actor[this.owner].u.myonCTL)
+		 *{
+		 *case 0:	//nothing
+		 *	break;
+		 *case 1:	//forwards strike
+		 *	this.u.Attack_Horizontal.call(this);
+		 *	break;
+		 *case 2:	//clone
+		 *	break;
+		 *default:
+		 *}
+		*/
+		
 		local maxspeed = 6.0;
 		local slowdist = 120;
 		local maxforce = 1;

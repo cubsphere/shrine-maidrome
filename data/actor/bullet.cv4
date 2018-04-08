@@ -4695,8 +4695,7 @@ function SakuyaBeybladeRTS ()
 		local yD = this.actor[this.owner].y-60 - this.y;
 		local xD = this.actor[this.owner].x - this.x;
 		
-		local factor = this.sqrt(xD * xD + yD * yD);
-		if(factor < 35)
+		if(this.Abs(xD) < 10 && this.Abs(yD) < 10)
 		{
 			this.SetUpdateFunction(SakuyaBeybladeFadeOut);
 		}
