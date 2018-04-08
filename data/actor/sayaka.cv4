@@ -40,32 +40,30 @@ function InputAttack()
 	{
 		if (this.C_Check(40))
 		{
-			if (this.UseMagic(this.u.magicUse))
+			if (this.isAir && this.UseMagic(this.u.magicUse))
 			{
 				this.u.InputReset.call(this);
-
-				if (this.isAir)
+				this.u.BeginMagic_Air.call(this);
+				this.u.myon.u.Stun.call(this.u.myon, 150);
+			}
+			else
+			{
+				if (this.input.x)
 				{
-					this.u.BeginMagic_Air.call(this);
+					this.u.myon.u.Attack_Horizontal.call(this.u.myon);
 				}
-				else
+				else if(this.input.y > 0)
 				{
-					if (this.input.x)
-					{
-						this.u.myon.u.Attack_Horizontal.call(this.u.myon);
-					}
-					else if(this.input.y > 0)
-					{
-						this.u.myon.u.Attack_Down.call(this.u.myon);
-					}
-					else if(this.input.y < 0)
-					{
-						this.u.myon.u.Attack_Up.call(this.u.myon);
-					}
-					else
-					{
-						this.u.BeginMagic.call(this);
-					}
+					this.u.myon.u.Attack_Down.call(this.u.myon);
+				}
+				else if(this.input.y < 0)
+				{
+					this.u.myon.u.Attack_Up.call(this.u.myon);
+				}
+				else if(this.UseMagic(this.u.magicUse))
+				{
+					this.u.BeginMagic.call(this);
+					this.u.myon.u.Stun.call(this.u.myon, 150);
 				}
 			}
 		}
@@ -1373,37 +1371,26 @@ function BeginMagic()
 	this.SetEndMotionCallbackFunction(this.u.EndtoFreeMove);
 }
 
-function Magic()
+function BeginMagic_Air()
 {
-	if (this.keyTake == 1)
-	{
-		this.count++;
-		this.setG = 0.0;
+	this.LabelClear();
+	this.count = 0;
+	this.vx = 0.0;
+	this.vy = 0.0;
+	this.setG = 0.0;
+	this.SetMotion(this.u.CA + 41, 0);
+	this.u.SetBariaState.call(this, true);
+	this.stateLabel = this.u.Magic;
+	this.hitEffect = this.HitEffect_SayakaHigh_H;
+	
+	this.rz = this.atan2(this.u.myon.y - this.y, this.u.myon.x - this.x);
+	this.direction = (this.u.myon.x - this.x)> 0 ? 1.0 : -1.0;
 
-		if (this.count >= 10)
-		{
-			this.SetMotion(this.u.CA + 40, 2);
-			this.rz = 0;
-			this.isAir = false;
-		}
-
-		if (this.u.inputCountB > 0)
-		{
-			if (this.UseMagic(this.u.magicUse))
-			{
-				this.u.BeginMagicAttack.call(this);
-				return;
-			}
-		}
-	}
-	else if (this.Abs(this.vx) <= 0.75)
-	{
-		this.vx = 0.0;
-	}
-	else
-	{
-		this.vx -= this.vx > 0.0 ? 0.75 : -0.75;
-	}
+	this.SetEndTakeCallbackFunction(this.KeyActionCheck);
+	this.keyAction = [
+		this.u.Magic_Move
+	];
+	this.SetEndMotionCallbackFunction(this.u.EndtoFreeMove);
 }
 
 function Magic_Move()
@@ -1423,53 +1410,33 @@ function Magic_Move()
 	local xdif = this.u.myon.x - this.x;
 	local ydif = this.u.myon.y - this.y;
 	local norm = this.sqrt(xdif*xdif + ydif*ydif);
-	this.flag1 = xdif/norm;
-	this.flag2 = ydif/norm;
-	//using flags for storage in case magic attack is used later
 
 	this.isAir = true;
 	this.setG = 0.0;
-	this.vx = this.flag1 * 15.0;
-	this.vy = this.flag2 * 15.0;
+	this.vx = xdif/norm * 15.0;
+	this.vy = ydif/norm * 15.0;
 	this.count = 0;
 	local t = this.DefaultShotTable();
 	this.world2d.CreateActor(this.x + this.vx, this.y + this.vy, this.direction, this.Sayaka_Magic, t);
 }
 
-function BeginMagic_Air()
-{
-	this.LabelClear();
-	this.count = 0;
-	this.vx = 0.0;
-	this.vy = 0.0;
-	this.setG = 0.0;
-	this.SetMotion(this.u.CA + 41, 0);
-	this.u.SetBariaState.call(this, true);
-	this.stateLabel = this.u.Magic_Air;
-	this.hitEffect = this.HitEffect_SayakaHigh_H;
-	
-	this.rz = this.atan2(this.u.myon.y - this.y, this.u.myon.x - this.x);
-	this.direction = (this.u.myon.x - this.x)> 0 ? 1.0 : -1.0;
-
-	this.SetEndTakeCallbackFunction(this.KeyActionCheck);
-	this.keyAction = [
-		this.u.Magic_Move
-	];
-	this.SetEndMotionCallbackFunction(this.u.EndtoFreeMove);
-}
-
-function Magic_Air()
+function Magic()
 {
 	if (this.keyTake == 1)
 	{
 		this.count++;
 		this.setG = 0.0;
+		
+		local xdist = this.x - this.u.myon.x;
+		local ydist = this.y - this.u.myon.y;
 
-		if (this.count >= 10)
+		if (this.count >= 200 || (this.Abs(xdist) < 10 && this.Abs(ydist) < 10))
 		{
+			this.u.myon.u.Unstun.call(this.u.myon);
 			this.SetMotion(this.u.CA + 41, 2);
 			this.sitLabel = this.u.BeginSit;
 			this.vx *= 0.5;
+			this.vy *= 0.5;
 			this.rz = 0;
 		}
 
@@ -1477,6 +1444,10 @@ function Magic_Air()
 		{
 			if (this.UseMagic(this.u.magicUse))
 			{
+				this.flag1 = this.vx;
+				this.flag2 = this.vy;
+				this.vx = 0;
+				this.vy = 0;
 				this.u.BeginMagicAttack.call(this);
 				return;
 			}
@@ -1509,15 +1480,6 @@ function MagicAttack()
 	if (this.keyTake == 0)
 	{
 		this.setG = 0.0;
-
-		if (this.Abs(this.vx) <= 1.25)
-		{
-			this.vx = 0.0;
-		}
-		else
-		{
-			this.vx -= this.vx > 0.0 ? 1.25 : -1.25;
-		}
 	}
 
 	if (this.keyTake == 1)
@@ -1534,9 +1496,14 @@ function MagicAttack()
 			this.world2d.CreateActor(this.x + this.vx, this.y - 50 + this.vy, this.direction, this.Effect_Smoke, t);
 		}
 
-		if (this.count >= 20)
+		local xdist = this.x - this.u.myon.x;
+		local ydist = this.y - this.u.myon.y;
+
+		if (this.count >= 200 || (this.Abs(xdist) < 10 && this.Abs(ydist) < 10))
 		{
+			this.u.myon.u.Unstun.call(this.u.myon);
 			this.vx *= 0.5;
+			this.vy *= 0.5;
 			this.rz = 0;
 			this.SetMotion(this.u.CA + 42, 2);
 		}
@@ -1545,22 +1512,13 @@ function MagicAttack()
 	if (this.keyTake == 2)
 	{
 		this.setG = 0.0;
-
-		if (this.Abs(this.vx) <= 0.5)
-		{
-			this.vx = 0.0;
-		}
-		else
-		{
-			this.vx -= this.vx > 0.0 ? 0.5 : -0.5;
-		}
 	}
 }
 
 function MagicAttack_Move()
 {
-	this.vx = this.flag1 * 18.0;
-	this.vy = this.flag2 * 18.0;
+	this.vx = this.flag1/15.0 * 18.0;
+	this.vy = this.flag2/15.0 * 18.0;
 	this.PlaySE(1210);
 	this.isAir = true;
 	this.setG = 0.0;
