@@ -39,6 +39,22 @@ function Clone_Conversion()
 	
 }
 
+function Stun( duration )
+{
+	this.vx = 0;
+	this.vy = 0;
+	this.flag1 = duration;
+	this.SetUpdateFunction(this.u.Update_Stunned);
+	//TODO: switch animation to a stunny one
+}
+
+function Unstun()
+{
+	this.flag1 = 0;
+	this.SetUpdateFunction(this.u.Update_Normal);
+	this.SetMotion(117,2);
+}
+
 function Update_Attack()
 {
 	if(this.flag1 > 0)
@@ -101,7 +117,7 @@ function Update_Normal()		//follows a point slightly above and behind youmu
 {
 	if(this.owner in this.actor)
 	{
-		//youmu commands myon using this flag
+		//stuff that i'm not using anymore
 		switch(this.actor[this.owner].u.myonCTL)
 		{
 		case 0:	//nothing
@@ -141,4 +157,15 @@ function Update_Normal()		//follows a point slightly above and behind youmu
 	} else {
 		return false;
 	}
+}
+
+function Update_Stunned()			//immobile for a short duration
+{
+	if(this.flag1 > 0)
+	{
+		this.flag1--;
+	} else {
+		this.u.Unstun.call(this);
+	}
+	return true;
 }
