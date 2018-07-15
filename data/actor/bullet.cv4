@@ -4457,6 +4457,7 @@ function Init_SakuyaBeybladeUpper( t )
 		this.option.flag1--;
 		if(this.option.flag1==0)
 		{
+			this.SetUpdateFunction(this.SakuyaBeybladeFadeOut);
 			this.hitEvent = null;
 		}
 	};
@@ -4468,7 +4469,7 @@ function Init_SakuyaBeybladeUpper( t )
 	
 	local s = this.DefaultShotTable();
 	s.rz = this.rz;
-	s.flag1 = 3;
+	s.flag1 = 0;
 	this.option = this.world2d.CreateActor(this.x, this.y, this.direction, this.Init_SakuyaInertKnife, s);
 	this.option.flag1 = 3;
 	
@@ -4699,8 +4700,9 @@ function SakuyaBeybladeRTS ()
 		{
 			this.SetUpdateFunction(SakuyaBeybladeFadeOut);
 		}
-		
-		factor = this.flag1 / factor;		//dividend is max speed
+        
+		local factor = this.sqrt(xD * xD + yD * yD);
+		factor = this.flag1 / factor;		    //dividend is max speed
 		xD = xD*factor - this.vx;
 		yD = yD*factor - this.vy;
 		
